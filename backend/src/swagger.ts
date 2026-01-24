@@ -12,6 +12,7 @@ export function setupSwagger(app: INestApplication): void {
     .setTitle('Course Portal API')
     .setDescription('API documentation for Course Portal application')
     .setVersion('1.0')
+    .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management endpoints')
     .addTag('courses', 'Course management endpoints')
     .addTag('enrollments', 'Enrollment management endpoints')

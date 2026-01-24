@@ -5,7 +5,7 @@ import { UserRole } from '../../../shared/enum/user-roles';
 export class CreateUserDto {
   @ApiProperty({
     description: 'User email address',
-    example: 'user@example.com',
+    example: 'admin@courseportal.com',
     type: String,
   })
   @IsEmail()

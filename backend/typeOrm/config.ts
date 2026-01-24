@@ -18,8 +18,8 @@ export const getDatabaseConfig = (): DataSourceOptions => ({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'course_portal',
   entities: models, // Entities from database-entity.ts
-  migrations: [join(__dirname, 'migrations', '*.{.ts,.js}')],
-  synchronize: process.env.NODE_ENV !== 'production', // Auto-sync only in development
+  migrations: [join(__dirname, 'migrations', '*.ts')],
+  synchronize: false, // DISABLED: Tables created ONLY through migrations
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
