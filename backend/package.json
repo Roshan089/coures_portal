@@ -23,7 +23,9 @@
     "migration:run": "pnpm typeorm migration:run -d typeOrm/config.ts",
     "migration:revert": "pnpm typeorm migration:revert -d typeOrm/config.ts",
     "migration:create": "pnpm typeorm migration:create typeOrm/migrations/",
-    "seed:users": "ts-node -r tsconfig-paths/register typeOrm/seeders/create-users.seeder.ts"
+    "seed:users": "ts-node -r tsconfig-paths/register typeOrm/seeders/create-users.seeder.ts",
+    "seed:teacher-profile": "ts-node -r tsconfig-paths/register typeOrm/seeders/create-teacher-profile.seeder.ts",
+    "seed:all": "ts-node -r tsconfig-paths/register typeOrm/seeders/seed-all.seeder.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

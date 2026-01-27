@@ -20,12 +20,22 @@ Example: `entities/user.entity.ts`, `entities/course.entity.ts`
 
 ## Migrations
 
-Database migrations are stored in the `migrations/` directory. Use the following commands:
+Migrations run in timestamp order. Revert runs the **last** migration’s `down()` and removes it from the table.
 
-- Generate migration: `pnpm migration:generate database/migrations/MigrationName`
-- Run migrations: `pnpm migration:run`
-- Revert migration: `pnpm migration:revert`
+**Order (run):**
+1. `CreateUsersTable`
+2. `CreateAdminProfilesTable`
+3. `CreateTeacherProfilesTable`
+4. `CreateRolesAndAlterUsersRoleId` (creates `roles`, seeds them, switches `users.role` → `users.role_id`)
+
+**Commands:**
+- Run: `pnpm migration:run`
+- Revert last: `pnpm migration:revert`
+- Generate: `pnpm migration:generate -d typeOrm/config.ts` (then move file into `typeOrm/migrations/`)
 
 ## Seeders
 
-Database seeding scripts go in the `seeders/` directory. These are used to populate the database with initial or test data.
+- **Roles** are seeded inside the migration `CreateRolesAndAlterUsersRoleId` (no separate seeder).
+- **Users:** `pnpm seed:users` — run after `pnpm migration:run`.
+- **Teacher profile:** `pnpm seed:teacher-profile` — run after `seed:users`.
+- **All seeders:** `pnpm seed:all` — runs `seed:users` then `seed:teacher-profile`. Add new seeders to the `SEEDERS` array in `seeders/seed-all.seeder.ts`.

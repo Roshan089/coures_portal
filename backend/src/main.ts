@@ -6,9 +6,15 @@ import { setupSwagger } from './swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
+  // Enable CORS: allow comma-separated origins; CORS allows only ONE value in
+  // Access-Control-Allow-Origin, so we pass an array and the middleware picks the matching origin.
+  const corsOrigin = process.env.CORS_ORIGIN;
+  const origin = corsOrigin
+    ? corsOrigin.split(',').map((s) => s.trim()).filter(Boolean)
+    : '*';
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin,
     credentials: true,
   });
 

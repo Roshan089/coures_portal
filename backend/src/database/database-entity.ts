@@ -12,12 +12,18 @@
 
 // Import all entities from modules
 import { User } from '../modules/users/entities/user.entity';
+import { Role } from '../modules/roles/entities/role.entity';
+import { AdminProfile } from '../modules/admin/entities/admin-profile.entity';
+import { TeacherProfile } from '../modules/teacher/entities/teacher-profile.entity';
 // import { Course } from '../modules/courses/entities/course.entity';
 // import { Enrollment } from '../modules/enrollments/entities/enrollment.entity';
 
 // Export all entities as an array
 export const models = [
   User,
+  Role,
+  AdminProfile,
+  TeacherProfile,
   // Course,
   // Enrollment,
 ];

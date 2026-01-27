@@ -1,0 +1,17 @@
+export const COMPANY_ROUTES_PREFIX = "/company";
+export const COMPANY_ROUTES = {
+  CANDIDATE_MESSAGING: `${COMPANY_ROUTES_PREFIX}/candidate-messaging`,
+  SETTINGS: `${COMPANY_ROUTES_PREFIX}/settings`,
+  JOB_DETAILS: `${COMPANY_ROUTES_PREFIX}/job-details`,
+  JOB_DASHBOARD: `${COMPANY_ROUTES_PREFIX}/job-dashboard`,
+  JOB_APPLICATION: `${COMPANY_ROUTES_PREFIX}/job-application`,
+  JOB_DESCRIPTION: `${COMPANY_ROUTES_PREFIX}/job-description`,
+  DASHBOARD: `${COMPANY_ROUTES_PREFIX}/dashboard`,
+  CREATE_JOB: `${COMPANY_ROUTES_PREFIX}/create-job`,
+  CREATE: `${COMPANY_ROUTES_PREFIX}/create`,
+  CLIENT_ABOUT: `${COMPANY_ROUTES_PREFIX}/client-about`,
+  ALL_JOBS: `${COMPANY_ROUTES_PREFIX}/all-jobs`,
+  CONFIRM_JOB_SETTING: `${COMPANY_ROUTES_PREFIX}/confirm-job`,
+  LICENSE_BILLING: `${COMPANY_ROUTES_PREFIX}/license-billing`,
+  CHATS: `${COMPANY_ROUTES_PREFIX}/candidate-messaging`,
+};

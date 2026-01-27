@@ -14,6 +14,9 @@ export function setupSwagger(app: INestApplication): void {
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management endpoints')
+    .addTag('roles', 'Roles (admin, teacher, student)')
+    .addTag('admin', 'Admin profile management endpoints')
+    .addTag('teacher', 'Teacher profile management endpoints')
     .addTag('courses', 'Course management endpoints')
     .addTag('enrollments', 'Enrollment management endpoints')
     .addBearerAuth(

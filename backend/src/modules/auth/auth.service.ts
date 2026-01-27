@@ -39,7 +39,7 @@ export class AuthService {
     const payload = {
       sub: user.id, // Subject (user ID)
       email: user.email,
-      role: user.role,
+      role: user.role?.name,
     };
 
     // Step 4: Generate JWT token
@@ -51,7 +51,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role,
+        role: user.role?.name,
         isVerified: user.isVerified,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

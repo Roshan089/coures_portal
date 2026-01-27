@@ -5,9 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { UserRole } from '../../../shared/enum/user-roles';
-
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -21,12 +22,12 @@ export class User {
   @Column({ type: 'varchar', length: 255, name: 'password_hash' })
   passwordHash: string;
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.STUDENT,
-  })
-  role: UserRole;
+  @Column({ type: 'uuid', name: 'role_id' })
+  roleId: string;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'role_id' })
+  role: Role;
 
   @Column({ type: 'boolean', default: false, name: 'is_verified' })
   isVerified: boolean;
