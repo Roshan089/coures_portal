@@ -1,6 +1,8 @@
 "use client";
 
 import { useLoginMutation } from "@/store/api/authApiSlice";
+import { useLazyGetStudentProfileMeQuery } from "@/store/api/studentApiSlice";
+import { useLazyGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
 import { loginSuccess } from "@/store/features/auth/authSlice";
 import type { LoginFormValues } from "@/yup/loginValidationSchema";
 import { loginValidationSchema } from "@/yup/loginValidationSchema";
@@ -17,6 +19,8 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [login] = useLoginMutation();
+  const [getStudentProfileMe] = useLazyGetStudentProfileMeQuery();
+  const [getTeacherProfileMe] = useLazyGetTeacherProfileMeQuery();
 
   const {
     register,
@@ -32,6 +36,48 @@ export default function LoginPage() {
     try {
       const response = await login({ email: data.email, password: data.password }).unwrap();
       dispatch(loginSuccess({ currentUser: response, isAuthenticated: true }));
+      const role = response.user?.role;
+
+      // Admin: go to home
+      if (role === "admin") {
+        router.push("/");
+        return;
+      }
+
+      // Teacher: profile-gated — no profile → create first
+      if (role === "teacher") {
+        try {
+          await getTeacherProfileMe().unwrap();
+          router.push("/");
+        } catch (e) {
+          if ((e as { status?: number })?.status === 404) {
+            router.push("/teacher/profile/create");
+          } else {
+            setErrorMessage(
+              (e as { data?: { message?: string } })?.data?.message || "Something went wrong. Please try again."
+            );
+          }
+        }
+        return;
+      }
+
+      // Student: profile-gated — no profile → create first
+      if (role === "student") {
+        try {
+          await getStudentProfileMe().unwrap();
+          router.push("/");
+        } catch (e) {
+          if ((e as { status?: number })?.status === 404) {
+            router.push("/student/profile/create");
+          } else {
+            setErrorMessage(
+              (e as { data?: { message?: string } })?.data?.message || "Something went wrong. Please try again."
+            );
+          }
+        }
+        return;
+      }
+
       router.push("/");
     } catch (err: unknown) {
       const message =
