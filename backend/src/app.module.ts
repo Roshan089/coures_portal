@@ -7,10 +7,11 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { TeacherModule } from './modules/teacher/teacher.module';
+import { StudentModule } from './modules/student/student.module';
 import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, AdminModule, TeacherModule, RolesModule],
+  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, AdminModule, TeacherModule, StudentModule, RolesModule],
   controllers: [AppController],
   providers: [AppService],
 })

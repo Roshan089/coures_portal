@@ -5,7 +5,7 @@ import { INestApplication } from '@nestjs/common';
  * Swagger Configuration
  * 
  * This function sets up Swagger/OpenAPI documentation for the application.
- * Access the API documentation at: http://localhost:3000/api
+ * Access the API documentation at: http://localhost:8080/api
  */
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
@@ -30,7 +30,7 @@ export function setupSwagger(app: INestApplication): void {
       },
       'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
     )
-    .addServer('http://localhost:3000', 'Development server')
+    .addServer('http://localhost:8080', 'Development server')
     .addServer('https://api.courseportal.com', 'Production server')
     .build();
 
