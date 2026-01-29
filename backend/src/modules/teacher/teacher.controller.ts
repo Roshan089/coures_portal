@@ -8,6 +8,8 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Req,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -52,6 +54,22 @@ export class TeacherController {
   @ApiResponse({ status: 200, description: 'Teacher profile' })
   findByUserId(@Param('userId') userId: string) {
     return this.teacherService.findByUserId(userId);
+  }
+
+  @Get('profile/me')
+  @ApiOperation({ summary: 'Get current user\'s teacher profile (for profile-gated flow)' })
+  @ApiResponse({ status: 200, description: 'Teacher profile' })
+  @ApiResponse({ status: 404, description: 'Teacher profile not found for this user' })
+  async getProfileMe(@Req() req: { user?: { sub?: string } }) {
+    const userId = req.user?.sub;
+    if (!userId) {
+      throw new HttpException('User not found in request', HttpStatus.UNAUTHORIZED);
+    }
+    const profile = await this.teacherService.findOptionalByUserId(userId);
+    if (!profile) {
+      throw new HttpException('Teacher profile not found for this user', HttpStatus.NOT_FOUND);
+    }
+    return this.teacherService.sanitizeProfile(profile);
   }
 
   @Get(':id')

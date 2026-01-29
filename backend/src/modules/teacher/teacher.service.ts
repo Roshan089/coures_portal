@@ -83,7 +83,15 @@ export class TeacherService {
     return this.sanitizeProfile(profile);
   }
 
-  private sanitizeProfile(profile: TeacherProfile) {
+  /** Returns the teacher profile for the given user id, or null if not found. Used by GET /profile/me. */
+  async findOptionalByUserId(userId: string): Promise<TeacherProfile | null> {
+    return this.teacherProfileRepository.findOne({
+      where: { userId },
+      relations: ['user', 'user.role'],
+    });
+  }
+
+  sanitizeProfile(profile: TeacherProfile) {
     if (profile.user && 'passwordHash' in profile.user) {
       const { passwordHash, ...user } = profile.user;
       return { ...profile, user };

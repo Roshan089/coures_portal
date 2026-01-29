@@ -1,4 +1,6 @@
 import { apiSlice } from "./api/apiSlice";
+import "./api/studentApiSlice";
+import "./api/teacherApiSlice";
 import authReducer from "./features/auth/authSlice";
 import { configureStore } from "@reduxjs/toolkit";
 
