@@ -1,6 +1,6 @@
 "use client";
 
-import { useSignupMutation } from "@/store/api/authApiSlice";
+import { useGetRolesQuery, useSignupMutation } from "@/store/api/authApiSlice";
 import type { SignupFormValues } from "@/yup/signupValidationSchema";
 import { signupValidationSchema } from "@/yup/signupValidationSchema";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,6 +14,15 @@ export default function SignUpPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const [signup] = useSignupMutation();
+  const { data: allRoles = [], isLoading: rolesLoading, error: rolesError } = useGetRolesQuery();
+  const signupRoles = [
+    { name: "student", label: "Student" },
+    { name: "teacher", label: "Teacher" },
+  ] as const;
+  const roleOptions = signupRoles.map(({ name, label }) => {
+    const role = allRoles.find((r) => r.name === name);
+    return { name, id: role?.id ?? "", label, ready: !!role };
+  });
 
   const {
     register,
@@ -24,16 +33,24 @@ export default function SignUpPage() {
   });
 
   const onSubmit = async (data: SignupFormValues) => {
+    if (!data.roleId) {
+      setErrorMessage("Please select a role");
+      return;
+    }
     setLoading(true);
     setErrorMessage("");
     try {
-      await signup({ email: data.email, password: data.password }).unwrap();
+      await signup({
+        email: data.email,
+        password: data.password,
+        roleId: data.roleId,
+      }).unwrap();
       router.push("/auth/login");
     } catch (err: unknown) {
       const e = err as { status?: number; data?: { message?: string } };
       const msg =
         e?.data?.message ||
-        (e?.status === 401 ? "Sign up is not yet available. Please contact support." : "Something went wrong. Please try again.");
+        (e?.status === 401 ? "Authorization token missing." : "Something went wrong. Please try again.");
       setErrorMessage(msg);
     } finally {
       setLoading(false);
@@ -58,6 +75,33 @@ export default function SignUpPage() {
           onSubmit={handleSubmit(onSubmit)}
           className="w-full max-w-md flex flex-col gap-4"
         >
+          <div>
+            <label htmlFor="roleId" className="block text-sm font-medium text-gray-700 mb-1">
+              Role
+            </label>
+            <select
+              id="roleId"
+              {...register("roleId")}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D] focus:border-[#242D3D] outline-none bg-white disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={rolesLoading}
+            >
+              <option value="">Select a role</option>
+              {roleOptions.map((opt) => (
+                <option key={opt.name} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {errors.roleId && (
+              <p className="mt-1 text-sm text-red-600">{errors.roleId.message}</p>
+            )}
+            {rolesError && !rolesLoading && (
+              <p className="mt-1 text-sm text-amber-600">
+                Unable to load roles. Please refresh the page or try again later.
+              </p>
+            )}
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email

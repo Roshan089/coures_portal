@@ -6,6 +6,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Public } from '../auth/decorators/public.decorator';
 import { RolesService } from './roles.service';
 
 @ApiTags('roles')
@@ -15,6 +16,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all roles' })
   @ApiResponse({ status: 200, description: 'List of roles' })
   findAll() {

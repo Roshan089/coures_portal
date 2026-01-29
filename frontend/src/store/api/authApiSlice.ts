@@ -1,5 +1,7 @@
 import { apiSlice } from "./apiSlice";
 
+export type Role = { id: string; name: string; createdAt: string; updatedAt: string };
+
 export type LoginCredentials = { email: string; password: string };
 
 export type LoginResponse = {
@@ -15,7 +17,7 @@ export type LoginResponse = {
 };
 
 /** Sign up uses POST /users. Backend: CreateUserDto { email, password, roleId? } */
-export type SignupCredentials = { email: string; password: string };
+export type SignupCredentials = { email: string; password: string; roleId?: string };
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -33,7 +35,10 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body,
       }),
     }),
+    getRoles: builder.query<Role[], void>({
+      query: () => ({ url: "/roles" }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useSignupMutation } = authApiSlice;
+export const { useLoginMutation, useSignupMutation, useGetRolesQuery } = authApiSlice;

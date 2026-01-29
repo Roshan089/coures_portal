@@ -13,6 +13,9 @@ export const signupValidationSchema = yup.object({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Please confirm your password"),
+  roleId: yup
+    .string()
+    .required("Please select a role"),
 });
 
 export type SignupFormValues = yup.InferType<typeof signupValidationSchema>;

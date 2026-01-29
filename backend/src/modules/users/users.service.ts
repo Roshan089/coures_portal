@@ -1,19 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { hash } from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { RolesService } from '../roles/roles.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly rolesService: RolesService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+    const existing = await this.userRepository.findOne({
+      where: { email: createUserDto.email.toLowerCase() },
+    });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    let roleId = createUserDto.roleId;
+    if (!roleId) {
+      const studentRole = await this.rolesService.findByName('student');
+      if (!studentRole) {
+        throw new BadRequestException('Default role not found');
+      }
+      roleId = studentRole.id;
+    } else {
+      const role = await this.rolesService.findOne(roleId);
+      if (!role) {
+        throw new BadRequestException('Invalid role');
+      }
+      const allowedSignupRoles = ['student', 'teacher'];
+      if (!allowedSignupRoles.includes(role.name)) {
+        throw new BadRequestException(
+          'Only Student or Teacher accounts can be created here',
+        );
+      }
+    }
+
+    const passwordHash = await hash(createUserDto.password, 10);
+    const user = this.userRepository.create({
+      email: createUserDto.email.toLowerCase().trim(),
+      passwordHash,
+      roleId,
+      isVerified: false,
+    });
+    const saved = await this.userRepository.save(user);
+    const { passwordHash: _, ...result } = saved;
+    return result;
   }
 
   async findAll() {
