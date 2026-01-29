@@ -1,7 +1,8 @@
 "use client";
 
 import { useIsAuthenticated } from "@/hooks/auth";
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setProfileId } from "@/store/features/auth/authSlice";
 import { useLazyGetStudentProfileMeQuery } from "@/store/api/studentApiSlice";
 import { useLazyGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
 import Link from "next/link";
@@ -36,6 +37,7 @@ const ROLE_QUICK_LINKS: Record<
 
 export default function HomePage() {
   const isAuthenticated = useIsAuthenticated();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const [getStudentProfileMe] = useLazyGetStudentProfileMeQuery();
   const [getTeacherProfileMe] = useLazyGetTeacherProfileMeQuery();
@@ -55,7 +57,11 @@ export default function HomePage() {
     const fn = role === "teacher" ? getTeacherProfileMe : getStudentProfileMe;
     fn()
       .unwrap()
-      .then(() => setProfileChecking(false))
+      .then((profile) => {
+        const id = (profile as { id?: string })?.id;
+        if (id) dispatch(setProfileId(id));
+        setProfileChecking(false);
+      })
       .catch((e) => {
         if ((e as { status?: number })?.status === 404) {
           router.replace(role === "teacher" ? "/teacher/profile/create" : "/student/profile/create");

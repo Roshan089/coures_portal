@@ -1,8 +1,9 @@
 "use client";
 
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useCreateStudentProfileMutation } from "@/store/api/studentApiSlice";
 import { useLazyGetStudentProfileMeQuery } from "@/store/api/studentApiSlice";
+import { setProfileId } from "@/store/features/auth/authSlice";
 import { useIsAuthenticated } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -12,6 +13,7 @@ type FormValues = { name: string; phone?: string; bio?: string; age?: string };
 
 export default function StudentProfileCreatePage() {
   const isAuthenticated = useIsAuthenticated();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
   const router = useRouter();
   const [createProfile, { isLoading }] = useCreateStudentProfileMutation();
@@ -34,7 +36,9 @@ export default function StudentProfileCreatePage() {
     }
     getProfileMe()
       .unwrap()
-      .then(() => {
+      .then((profile) => {
+        const id = (profile as { id?: string })?.id;
+        if (id) dispatch(setProfileId(id));
         router.replace("/");
       })
       .catch(() => {})
@@ -45,13 +49,15 @@ export default function StudentProfileCreatePage() {
     if (!user?.id) return;
     setErrorMessage("");
     try {
-      await createProfile({
+      const created = await createProfile({
         userId: user.id,
         name: data.name.trim(),
         phone: data.phone?.trim() || undefined,
         bio: data.bio?.trim() || undefined,
         age: data.age ? parseInt(data.age, 10) : undefined,
       }).unwrap();
+      const profileId = (created as { id?: string })?.id;
+      if (profileId) dispatch(setProfileId(profileId));
       router.push("/");
     } catch (err: unknown) {
       const e = err as { status?: number; data?: { message?: string } };

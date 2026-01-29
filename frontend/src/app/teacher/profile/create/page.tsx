@@ -1,7 +1,8 @@
 "use client";
 
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useCreateTeacherProfileMutation, useLazyGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
+import { setProfileId } from "@/store/features/auth/authSlice";
 import { useIsAuthenticated } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -11,6 +12,7 @@ type FormValues = { name: string; phone?: string; bio?: string; age?: string };
 
 export default function TeacherProfileCreatePage() {
   const isAuthenticated = useIsAuthenticated();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
   const router = useRouter();
   const [createProfile, { isLoading }] = useCreateTeacherProfileMutation();
@@ -32,7 +34,11 @@ export default function TeacherProfileCreatePage() {
     }
     getProfileMe()
       .unwrap()
-      .then(() => router.replace("/"))
+      .then((profile) => {
+        const id = (profile as { id?: string })?.id;
+        if (id) dispatch(setProfileId(id));
+        router.replace("/");
+      })
       .catch(() => {})
       .finally(() => setChecking(false));
   }, [isAuthenticated, user?.role, router, getProfileMe]);
@@ -41,13 +47,15 @@ export default function TeacherProfileCreatePage() {
     if (!user?.id) return;
     setErrorMessage("");
     try {
-      await createProfile({
+      const created = await createProfile({
         userId: user.id,
         name: data.name.trim(),
         phone: data.phone?.trim() || undefined,
         bio: data.bio?.trim() || undefined,
         age: data.age ? parseInt(data.age, 10) : undefined,
       }).unwrap();
+      const profileId = (created as { id?: string })?.id;
+      if (profileId) dispatch(setProfileId(profileId));
       router.push("/");
     } catch (err: unknown) {
       const e = err as { status?: number; data?: { message?: string } };

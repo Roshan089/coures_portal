@@ -3,7 +3,7 @@
 import { useLoginMutation } from "@/store/api/authApiSlice";
 import { useLazyGetStudentProfileMeQuery } from "@/store/api/studentApiSlice";
 import { useLazyGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
-import { loginSuccess } from "@/store/features/auth/authSlice";
+import { loginSuccess, setProfileId } from "@/store/features/auth/authSlice";
 import type { LoginFormValues } from "@/yup/loginValidationSchema";
 import { loginValidationSchema } from "@/yup/loginValidationSchema";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -47,7 +47,9 @@ export default function LoginPage() {
       // Teacher: profile-gated — no profile → create first
       if (role === "teacher") {
         try {
-          await getTeacherProfileMe().unwrap();
+          const profile = await getTeacherProfileMe().unwrap();
+          const profileId = (profile as { id?: string })?.id;
+          if (profileId) dispatch(setProfileId(profileId));
           router.push("/");
         } catch (e) {
           if ((e as { status?: number })?.status === 404) {
@@ -64,7 +66,9 @@ export default function LoginPage() {
       // Student: profile-gated — no profile → create first
       if (role === "student") {
         try {
-          await getStudentProfileMe().unwrap();
+          const profile = await getStudentProfileMe().unwrap();
+          const profileId = (profile as { id?: string })?.id;
+          if (profileId) dispatch(setProfileId(profileId));
           router.push("/");
         } catch (e) {
           if ((e as { status?: number })?.status === 404) {
