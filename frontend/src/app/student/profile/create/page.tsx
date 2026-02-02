@@ -67,14 +67,14 @@ export default function StudentProfileCreatePage() {
 
   if (checking) {
     return (
-      <div className="p-6 md:p-8 flex items-center justify-center min-h-[40vh]">
+      <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto flex items-center justify-center min-h-[40vh]">
         <p className="text-gray-500">Loading…</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-lg mx-auto">
+    <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       <h1 className="text-2xl font-bold text-gray-900">Create your student profile</h1>
       <p className="mt-1 text-gray-600">Complete your profile to access your dashboard and courses.</p>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4">

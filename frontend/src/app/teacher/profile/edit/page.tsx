@@ -1,29 +1,30 @@
 "use client";
 
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { useCreateTeacherProfileMutation, useLazyGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
-import { setProfileId } from "@/store/features/auth/authSlice";
+import { useAppSelector } from "@/store/hooks";
+import {
+  useGetTeacherProfileMeQuery,
+  useUpdateTeacherProfileMutation,
+  type TeacherProfile,
+} from "@/store/api/teacherApiSlice";
 import { useIsAuthenticated } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import Link from "next/link";
 
 type FormValues = { name: string; phone?: string; bio?: string; age?: string };
 
-export default function TeacherProfileCreatePage() {
+export default function TeacherProfileEditPage() {
   const isAuthenticated = useIsAuthenticated();
-  const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
   const router = useRouter();
-  const [createProfile, { isLoading }] = useCreateTeacherProfileMutation();
-  const [getProfileMe] = useLazyGetTeacherProfileMeQuery();
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useGetTeacherProfileMeQuery(undefined, { skip: !isAuthenticated });
+  const [updateProfile, { isLoading: updating }] = useUpdateTeacherProfileMutation();
   const [errorMessage, setErrorMessage] = useState("");
-  const [checking, setChecking] = useState(true);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (!isAuthenticated) {
       router.replace("/auth/login");
       return;
@@ -32,49 +33,66 @@ export default function TeacherProfileCreatePage() {
       router.replace("/");
       return;
     }
-    getProfileMe()
-      .unwrap()
-      .then((profile) => {
-        const id = (profile as { id?: string })?.id;
-        if (id) dispatch(setProfileId(id));
-        router.replace("/teacher/dashboard");
-      })
-      .catch(() => {})
-      .finally(() => setChecking(false));
-  }, [isAuthenticated, user?.role, router, getProfileMe]);
+  }, [isAuthenticated, user?.role, router]);
+
+  useEffect(() => {
+    if (profile) {
+      reset({
+        name: profile.name ?? "",
+        phone: profile.phone ?? "",
+        bio: profile.bio ?? "",
+        age: profile.age != null ? String(profile.age) : "",
+      });
+    }
+  }, [profile, reset]);
 
   const onSubmit = async (data: FormValues) => {
-    if (!user?.id) return;
+    if (!(profile as TeacherProfile)?.id) return;
     setErrorMessage("");
     try {
-      const created = await createProfile({
-        userId: user.id,
-        name: data.name.trim(),
-        phone: data.phone?.trim() || undefined,
-        bio: data.bio?.trim() || undefined,
-        age: data.age ? parseInt(data.age, 10) : undefined,
+      await updateProfile({
+        id: (profile as TeacherProfile).id,
+        body: {
+          name: data.name.trim(),
+          phone: data.phone?.trim() || undefined,
+          bio: data.bio?.trim() || undefined,
+          age: data.age ? parseInt(data.age, 10) : undefined,
+        },
       }).unwrap();
-      const profileId = (created as { id?: string })?.id;
-      if (profileId) dispatch(setProfileId(profileId));
-      router.push("/teacher/dashboard");
+      router.push("/teacher/profile");
     } catch (err: unknown) {
-      const e = err as { status?: number; data?: { message?: string } };
-      setErrorMessage(e?.data?.message || "Something went wrong. Please try again.");
+      const e = err as { data?: { message?: string } };
+      setErrorMessage(e?.data?.message ?? "Something went wrong. Please try again.");
     }
   };
 
-  if (checking) {
+  if (!isAuthenticated || (user?.role && user.role !== "teacher")) {
+    return null;
+  }
+
+  if (profileLoading || !profile) {
     return (
       <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto flex items-center justify-center min-h-[40vh]">
-        <p className="text-gray-500">Loading…</p>
+        <p className="text-gray-500">Loading profile…</p>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto">
+        <p className="text-red-600">Failed to load profile.</p>
+        <Link href="/teacher/profile" className="mt-4 inline-block text-[#242D3D] font-medium hover:underline">
+          Back to profile
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
-      <h1 className="text-2xl font-bold text-gray-900">Create your teacher profile</h1>
-      <p className="mt-1 text-gray-600">Complete your profile to access your dashboard and courses.</p>
+      <h1 className="text-2xl font-bold text-gray-900">Edit your teacher profile</h1>
+      <p className="mt-1 text-gray-600">Update your profile details.</p>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -129,13 +147,21 @@ export default function TeacherProfileCreatePage() {
           />
         </div>
         {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="mt-2 w-full py-3 rounded-lg bg-[#242D3D] text-white font-medium hover:bg-[#1a222c] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? "Creating…" : "Create profile"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            disabled={updating}
+            className="px-5 py-2.5 rounded-xl bg-[#242D3D] text-white font-medium hover:bg-[#1a222c] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            {updating ? "Saving…" : "Save changes"}
+          </button>
+          <Link
+            href="/teacher/profile"
+            className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </Link>
+        </div>
       </form>
     </div>
   );

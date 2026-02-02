@@ -20,7 +20,7 @@ export default function StudentProgressPage() {
   const name = email ? email.split("@")[0] : "Student";
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 max-w-6xl">
+    <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Progress</h1>
         <p className="mt-1 text-gray-600">Track your learning across all courses.</p>

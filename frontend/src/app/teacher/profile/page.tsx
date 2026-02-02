@@ -8,7 +8,7 @@ export default function TeacherProfilePage() {
   const name = email ? email.split("@")[0] : "Teacher";
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 max-w-3xl">
+    <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       {/* Hero profile card */}
       <div className="relative rounded-3xl bg-gradient-to-br from-[#242D3D] via-[#2d3849] to-[#354053] p-8 md:p-10 text-white shadow-xl overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />

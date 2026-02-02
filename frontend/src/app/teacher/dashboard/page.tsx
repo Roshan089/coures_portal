@@ -51,7 +51,7 @@ export default function TeacherDashboardPage() {
       : "";
 
   return (
-    <div className="p-6 md:p-8 lg:p-10 max-w-6xl">
+    <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       {/* Welcome banner */}
       <div className="mb-8 rounded-2xl bg-gradient-to-r from-[#242D3D] to-[#354053] p-6 md:p-8 text-white shadow-lg">
         <h1 className="text-2xl md:text-3xl font-bold">
