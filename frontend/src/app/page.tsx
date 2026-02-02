@@ -9,32 +9,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-const ROLE_QUICK_LINKS: Record<
-  string,
-  { icon: string; title: string; href: string; desc: string }[]
-> = {
-  admin: [
-    { icon: "📊", title: "Dashboard", href: "/admin/dashboard", desc: "Overview & analytics" },
-    { icon: "📚", title: "Courses", href: "/admin/courses", desc: "Manage all courses" },
-    { icon: "👥", title: "Users", href: "/admin/users", desc: "Users & roles" },
-  ],
-  teacher: [
-    { icon: "📊", title: "Dashboard", href: "/teacher/dashboard", desc: "Your teaching overview" },
-    { icon: "📚", title: "My Courses", href: "/teacher/courses", desc: "Create & manage courses" },
-  ],
-  student: [
-    { icon: "📊", title: "Dashboard", href: "/student/dashboard", desc: "Your learning overview" },
-    { icon: "📚", title: "My Courses", href: "/student/courses", desc: "Browse & continue learning" },
-  ],
-};
-
 export default function HomePage() {
   const isAuthenticated = useIsAuthenticated();
   const dispatch = useAppDispatch();
@@ -42,9 +16,8 @@ export default function HomePage() {
   const [getStudentProfileMe] = useLazyGetStudentProfileMeQuery();
   const [getTeacherProfileMe] = useLazyGetTeacherProfileMeQuery();
   const [profileChecking, setProfileChecking] = useState(true);
-  const { role, email } = useAppSelector((s) => ({
+  const { role } = useAppSelector((s) => ({
     role: s.auth.currentUser?.user?.role,
-    email: s.auth.currentUser?.user?.email,
   }));
 
   const needsProfileCheck = isAuthenticated && (role === "student" || role === "teacher");
@@ -78,7 +51,12 @@ export default function HomePage() {
         ? "/teacher/dashboard"
         : "/student/dashboard";
 
-  const quickLinks = ROLE_QUICK_LINKS[role ?? "student"] ?? ROLE_QUICK_LINKS.student;
+  // Redirect authenticated users (with profile or admin) straight to their dashboard
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (needsProfileCheck && profileChecking) return;
+    router.replace(dashboardPath);
+  }, [isAuthenticated, needsProfileCheck, profileChecking, dashboardPath, router]);
 
   if (isAuthenticated) {
     if (needsProfileCheck && profileChecking) {
@@ -89,73 +67,8 @@ export default function HomePage() {
       );
     }
     return (
-      <div className="p-6 md:p-8 lg:p-10 max-w-5xl">
-        {/* Greeting */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            {getGreeting()}
-            {email ? `, ${email.split("@")[0]}` : ""}
-          </h1>
-          <div className="mt-2 flex items-center gap-2">
-            <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
-                ${role === "admin" ? "bg-slate-100 text-slate-700" : ""}
-                ${role === "teacher" ? "bg-blue-100 text-blue-700" : ""}
-                ${role === "student" ? "bg-emerald-100 text-emerald-700" : ""}
-                ${!role ? "bg-gray-100 text-gray-600" : ""}
-              `}
-            >
-              {role ?? "Member"}
-            </span>
-          </div>
-        </div>
-
-        {/* Quick action cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {quickLinks.map(({ icon, title, href, desc }) => (
-            <Link
-              key={href}
-              href={href}
-              className="group flex items-start gap-4 p-5 md:p-6 rounded-2xl bg-white border border-gray-200 shadow-sm
-                         hover:shadow-lg hover:border-[#242D3D]/20 hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <span
-                className="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-[#242D3D]/10 flex items-center justify-center text-2xl
-                           transition-colors duration-200"
-              >
-                {icon}
-              </span>
-              <div className="min-w-0">
-                <h2 className="font-bold text-gray-900 group-hover:text-[#242D3D] transition-colors">
-                  {title}
-                </h2>
-                <p className="mt-0.5 text-sm text-gray-500">{desc}</p>
-              </div>
-              <span className="flex-shrink-0 text-gray-400 group-hover:text-[#242D3D] group-hover:translate-x-1 transition-all">
-                →
-              </span>
-            </Link>
-          ))}
-        </div>
-
-        {/* Primary CTA */}
-        <div className="mt-8 p-5 md:p-6 rounded-2xl bg-gradient-to-br from-[#242D3D] to-[#1a222c] text-white shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 className="font-bold text-lg">Go to your full dashboard</h3>
-              <p className="mt-1 text-sm text-white/80">
-                View detailed stats, recent activity, and more.
-              </p>
-            </div>
-            <Link
-              href={dashboardPath}
-              className="flex-shrink-0 inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-white text-[#242D3D] font-semibold
-                         hover:bg-gray-100 transition-colors"
-            >
-              Open Dashboard
-            </Link>
-          </div>
-        </div>
+      <div className="p-6 md:p-8 lg:p-10 flex items-center justify-center min-h-[40vh]">
+        <p className="text-gray-500">Redirecting to dashboard…</p>
       </div>
     );
   }

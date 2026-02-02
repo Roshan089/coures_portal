@@ -6,7 +6,7 @@ After running migrations and seeders (`pnpm migration:run` then `pnpm seed:users
 
 | Role    | Email                  | Password   |
 |---------|------------------------|------------|
-| Admin   | admin@courseportal.com | password123 |
+| Admin   | admin@courseportal.com |   |
 | Teacher | teacher@courseportal.com | password123 |
 | Student | student@courseportal.com | password123 |
 

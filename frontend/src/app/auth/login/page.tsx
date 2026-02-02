@@ -38,19 +38,19 @@ export default function LoginPage() {
       dispatch(loginSuccess({ currentUser: response, isAuthenticated: true }));
       const role = response.user?.role;
 
-      // Admin: go to home
+      // Admin: go to admin dashboard
       if (role === "admin") {
-        router.push("/");
+        router.push("/admin/dashboard");
         return;
       }
 
-      // Teacher: profile-gated — no profile → create first
+      // Teacher: profile-gated — no profile → create first; else go to teacher dashboard
       if (role === "teacher") {
         try {
           const profile = await getTeacherProfileMe().unwrap();
           const profileId = (profile as { id?: string })?.id;
           if (profileId) dispatch(setProfileId(profileId));
-          router.push("/");
+          router.push("/teacher/dashboard");
         } catch (e) {
           if ((e as { status?: number })?.status === 404) {
             router.push("/teacher/profile/create");
@@ -63,13 +63,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Student: profile-gated — no profile → create first
+      // Student: profile-gated — no profile → create first; else go to student dashboard
       if (role === "student") {
         try {
           const profile = await getStudentProfileMe().unwrap();
           const profileId = (profile as { id?: string })?.id;
           if (profileId) dispatch(setProfileId(profileId));
-          router.push("/");
+          router.push("/student/dashboard");
         } catch (e) {
           if ((e as { status?: number })?.status === 404) {
             router.push("/student/profile/create");
