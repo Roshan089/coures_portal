@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Course } from '../../course/entities/course.entity';
 
 @Entity('teacher_profiles')
 export class TeacherProfile {
@@ -38,6 +40,10 @@ export class TeacherProfile {
 
   @Column({ type: 'boolean', default: false, name: 'is_approved' })
   isApproved: boolean;
+
+  /** One teacher can have many courses. */
+  @OneToMany(() => Course, (course) => course.teacher)
+  courses: Course[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

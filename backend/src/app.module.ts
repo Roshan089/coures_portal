@@ -9,9 +9,10 @@ import { AdminModule } from './modules/admin/admin.module';
 import { TeacherModule } from './modules/teacher/teacher.module';
 import { StudentModule } from './modules/student/student.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { CourseModule } from './modules/course/course.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, AdminModule, TeacherModule, StudentModule, RolesModule],
+  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, AdminModule, TeacherModule, StudentModule, RolesModule, CourseModule],
   controllers: [AppController],
   providers: [AppService],
 })
