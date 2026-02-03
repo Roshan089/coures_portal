@@ -11,3 +11,6 @@ After running migrations and seeders (`pnpm migration:run` then `pnpm seed:users
 | Student | student@courseportal.com | password123 |
 
 > Change these passwords in production.
+
+
+backend ka readme backend me hai

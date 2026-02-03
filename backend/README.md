@@ -25,10 +25,159 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Quick Start (For New Developers)
+
+Follow these steps to set up the project from scratch:
+
+1. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+2. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Start PostgreSQL database (Docker):**
+   ```powershell
+   # PowerShell (Windows)
+   docker run --name course-portal-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=course_portal -p 5433:5432 -d postgres:latest
+   ```
+   ```bash
+   # Bash/Linux/Mac
+   docker run --name course-portal-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=course_portal -p 5433:5432 -d postgres:latest
+   ```
+
+4. **Run migrations (create tables):**
+   ```bash
+   pnpm migration:run
+   ```
+
+5. **Seed database (populate initial data):**
+   ```bash
+   pnpm seed:all
+   ```
+
+6. **Start the development server:**
+   ```bash
+   pnpm run start:dev
+   ```
+
 ## Project setup
 
 ```bash
 $ pnpm install
+```
+
+## Database Setup
+
+Run PostgreSQL database using Docker:
+
+**For PowerShell (Windows):**
+```powershell
+docker run --name course-portal-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=course_portal -p 5433:5432 -d postgres:latest
+```
+
+**For Bash/Linux/Mac:**
+```bash
+docker run --name course-portal-db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=course_portal \
+  -p 5433:5432 \
+  -d postgres:latest
+```
+
+Or using docker-compose (create `docker-compose.yml` in the backend directory):
+
+```yaml
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    container_name: course-portal-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: course_portal
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+```
+
+Then run:
+```bash
+docker-compose up -d
+```
+
+### 2. Configure Environment Variables
+
+Copy the `.env.example` file to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Or on Windows PowerShell:
+```powershell
+Copy-Item .env.example .env
+```
+
+Update the `.env` file with your database credentials if needed (default values should work if you used the Docker command above).
+
+### 3. Run Migrations (Create Tables)
+
+Run all migrations to create the database tables:
+
+```bash
+pnpm migration:run
+```
+
+This will create all the necessary tables:
+- Users
+- Roles
+- Admin Profiles
+- Teacher Profiles
+- Student Profiles
+- Courses
+
+### 4. Seed Database (Populate Initial Data)
+
+Run all seeders to populate the database with initial data:
+
+```bash
+pnpm seed:all
+```
+
+This will seed:
+- Users
+- Teacher profiles
+
+**Note:** You can also run individual seeders:
+```bash
+pnpm seed:users              # Seed users only
+pnpm seed:teacher-profile    # Seed teacher profiles only
+```
+
+### Migration Commands Reference
+
+```bash
+# Run all pending migrations
+pnpm migration:run
+
+# Revert the last migration
+pnpm migration:revert
+
+# Generate a new migration (after entity changes)
+pnpm migration:generate typeOrm/migrations/MigrationName
+
+# Create an empty migration file
+pnpm migration:create typeOrm/migrations/MigrationName
 ```
 
 ## Compile and run the project
