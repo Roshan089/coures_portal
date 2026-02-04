@@ -1,17 +1,17 @@
 "use client";
 
 import { useAppSelector } from "@/store/hooks";
+import { useGetTeacherProfileMeQuery } from "@/store/api/teacherApiSlice";
+import { useGetCoursesByTeacherQuery } from "@/store/api/courseApiSlice";
 import Link from "next/link";
-
-const MY_COURSES = [
-  { title: "Introduction to Web Development", students: 42, status: "Published", modules: 6 },
-  { title: "Advanced React Patterns", students: 28, status: "Published", modules: 5 },
-  { title: "Full-Stack Project", students: 0, status: "Draft", modules: 4 },
-];
 
 export default function TeacherCoursesPage() {
   const email = useAppSelector((s) => s.auth.currentUser?.user?.email);
-  const name = email ? email.split("@")[0] : "Teacher";
+  const { data: profile } = useGetTeacherProfileMeQuery();
+  const teacherId = profile?.id ?? "";
+  const { data: courses = [], isLoading, isError } = useGetCoursesByTeacherQuery(teacherId, { skip: !teacherId });
+
+  const name = profile?.name ?? (email ? email.split("@")[0] : "Teacher");
 
   return (
     <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
@@ -24,12 +24,12 @@ export default function TeacherCoursesPage() {
             {name}
           </span>
         </div>
-        <button
-          type="button"
-          className="px-5 py-2.5 rounded-xl bg-[#242D3D] text-white font-medium hover:bg-[#1a222c] transition-colors shadow-sm hover:shadow-md"
+        <Link
+          href="/teacher/courses/create"
+          className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-[#242D3D] text-white font-medium hover:bg-[#1a222c] transition-colors shadow-sm hover:shadow-md"
         >
           Create course
-        </button>
+        </Link>
       </div>
 
       {/* Shortcuts */}
@@ -51,54 +51,62 @@ export default function TeacherCoursesPage() {
       {/* Course list */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Your courses</h2>
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <ul className="divide-y divide-gray-100">
-            {MY_COURSES.map(({ title, students, status, modules }) => (
-              <li
-                key={title}
-                className="flex flex-wrap items-center justify-between gap-4 p-5 hover:bg-gray-50/80 transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-gray-900">{title}</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    {modules} modules · {students} {students === 1 ? "student" : "students"} enrolled
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      status === "Published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {status}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        {isLoading && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500">
+            Loading courses…
+          </div>
+        )}
+        {isError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
+            Failed to load courses. Please try again.
+          </div>
+        )}
+        {!isLoading && !isError && courses.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center">
+            <p className="text-gray-600">You haven’t created any courses yet.</p>
+            <Link
+              href="/teacher/courses/create"
+              className="mt-4 inline-block px-5 py-2.5 rounded-xl bg-[#242D3D] text-white font-medium hover:bg-[#1a222c]"
+            >
+              Create your first course
+            </Link>
+          </div>
+        )}
+        {!isLoading && !isError && courses.length > 0 && (
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <ul className="divide-y divide-gray-100">
+              {courses.map((course) => (
+                <li
+                  key={course.id}
+                  className="flex flex-wrap items-center justify-between gap-4 p-5 hover:bg-gray-50/80 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900">{course.title}</h3>
+                    {course.description && (
+                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{course.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        course.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}
                     >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
+                      {course.isPublished ? "Published" : "Draft"}
+                    </span>
+                    <Link
+                      href={`/teacher/courses/${course.id}`}
                       className="px-3 py-1.5 rounded-lg bg-[#242D3D] text-sm font-medium text-white hover:bg-[#1a222c]"
                     >
                       View
-                    </button>
+                    </Link>
                   </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
-
-      {/* Empty state hint (static) */}
-      <div className="mt-8 p-6 rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 text-center">
-        <p className="text-gray-600">
-          Create your first course to start teaching. Use the &quot;Create course&quot; button above.
-        </p>
-      </div>
     </div>
   );
 }

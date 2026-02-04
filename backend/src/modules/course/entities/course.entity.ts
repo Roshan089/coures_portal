@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { TeacherProfile } from '../../teacher/entities/teacher-profile.entity';
+import { CourseVideo } from './course-video.entity';
 
 @Entity('courses')
 export class Course {
@@ -29,6 +31,9 @@ export class Course {
 
   @Column({ type: 'boolean', default: false, name: 'is_published' })
   isPublished: boolean;
+
+  @OneToMany(() => CourseVideo, (video) => video.course)
+  videos: CourseVideo[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

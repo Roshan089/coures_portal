@@ -1,35 +1,22 @@
 "use client";
 
 import { useAppSelector } from "@/store/hooks";
+import { useGetCoursesQuery } from "@/store/api/courseApiSlice";
 import Link from "next/link";
-
-const ENROLLED_COURSES = [
-  { title: "Introduction to Web Development", progress: 65, instructor: "Jane Smith", modules: 6, href: "/student/courses" },
-  { title: "Data Structures & Algorithms", progress: 30, instructor: "John Doe", modules: 8, href: "/student/courses" },
-  { title: "React & Next.js", progress: 0, instructor: "Alex Lee", modules: 5, href: "/student/courses" },
-];
-
-const BROWSE_COURSES = [
-  { title: "Advanced TypeScript", instructor: "Sam Wilson", level: "Intermediate", enrolled: "120" },
-  { title: "Node.js Backend Development", instructor: "Chris Brown", level: "Beginner", enrolled: "89" },
-  { title: "Database Design", instructor: "Maria Garcia", level: "Intermediate", enrolled: "56" },
-];
-
-const RECOMMENDED = [
-  { title: "Full-Stack with Next.js", instructor: "Alex Lee", reason: "Based on your progress in React" },
-  { title: "System Design", instructor: "Jordan Kim", reason: "Popular with DSA learners" },
-];
 
 export default function StudentCoursesPage() {
   const email = useAppSelector((s) => s.auth.currentUser?.user?.email);
+  const { data: courses = [], isLoading, isError } = useGetCoursesQuery();
+
   const name = email ? email.split("@")[0] : "Student";
+  const publishedCourses = courses.filter((c) => c.isPublished);
 
   return (
     <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Courses</h1>
-        <p className="mt-1 text-gray-600">Continue learning and discover new courses.</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Courses</h1>
+        <p className="mt-1 text-gray-600">Browse and explore courses. You can view published courses here.</p>
         <span className="inline-flex mt-3 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide bg-emerald-100 text-emerald-700">
           {name}
         </span>
@@ -51,85 +38,49 @@ export default function StudentCoursesPage() {
         </Link>
       </div>
 
-      {/* In progress */}
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">In progress</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ENROLLED_COURSES.map(({ title, progress, instructor, modules, href }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <div className="h-2 bg-gray-100">
-                <div className="h-full bg-[#242D3D]" style={{ width: `${progress}%` }} />
-              </div>
-              <div className="p-5">
-                <h3 className="font-semibold text-gray-900">{title}</h3>
-                <p className="text-sm text-gray-500 mt-1">by {instructor}</p>
-                <p className="text-sm text-gray-500">{modules} modules</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{progress}% complete</span>
-                  <Link href={href} className="text-sm font-medium text-[#242D3D] hover:underline">
-                    Continue
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Recommended for you */}
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommended for you</h2>
-        <p className="text-gray-600 mb-4">Based on your learning history and interests.</p>
-        <div className="grid md:grid-cols-2 gap-4">
-          {RECOMMENDED.map(({ title, instructor, reason }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-[#242D3D]/20 transition-all"
-            >
-              <h3 className="font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-500 mt-1">by {instructor}</p>
-              <p className="text-xs text-gray-500 mt-2 italic">{reason}</p>
-              <button
-                type="button"
-                className="mt-4 w-full py-2.5 rounded-lg bg-[#242D3D] text-white text-sm font-medium hover:bg-[#1a222c] transition-colors"
-              >
-                Enroll
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Browse courses */}
+      {/* Browse courses (from API) */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Browse courses</h2>
-        <p className="text-gray-600 mb-4">Explore and enroll in new courses.</p>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {BROWSE_COURSES.map(({ title, instructor, level, enrolled }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 hover:shadow-md hover:border-[#242D3D]/20 transition-all"
-            >
-              <h3 className="font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-500 mt-1">by {instructor}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                  {level}
-                </span>
-                <span className="text-xs text-gray-500">{enrolled} enrolled</span>
-              </div>
-              <button
-                type="button"
-                className="mt-4 w-full py-2.5 rounded-lg bg-[#242D3D] text-white text-sm font-medium hover:bg-[#1a222c] transition-colors"
+        <p className="text-gray-600 mb-4">Published courses you can explore.</p>
+        {isLoading && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500">
+            Loading courses…
+          </div>
+        )}
+        {isError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
+            Failed to load courses. Please try again.
+          </div>
+        )}
+        {!isLoading && !isError && publishedCourses.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center">
+            <p className="text-gray-600">No published courses yet. Check back later.</p>
+          </div>
+        )}
+        {!isLoading && !isError && publishedCourses.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {publishedCourses.map((course) => (
+              <div
+                key={course.id}
+                className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 hover:shadow-md hover:border-[#242D3D]/20 transition-all"
               >
-                Enroll
-              </button>
-            </div>
-          ))}
-        </div>
+                <h3 className="font-semibold text-gray-900">{course.title}</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  by {course.teacher?.name ?? "Teacher"}
+                </p>
+                {course.description && (
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{course.description}</p>
+                )}
+                <Link
+                  href={`/student/courses/${course.id}`}
+                  className="mt-4 block w-full py-2.5 rounded-lg bg-[#242D3D] text-white text-sm font-medium hover:bg-[#1a222c] transition-colors text-center"
+                >
+                  View course
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

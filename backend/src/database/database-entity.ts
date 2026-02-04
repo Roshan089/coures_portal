@@ -17,6 +17,7 @@ import { AdminProfile } from '../modules/admin/entities/admin-profile.entity';
 import { TeacherProfile } from '../modules/teacher/entities/teacher-profile.entity';
 import { StudentProfile } from '../modules/student/entities/student-profile.entity';
 import { Course } from '../modules/course/entities/course.entity';
+import { CourseVideo } from '../modules/course/entities/course-video.entity';
 
 // Export all entities as an array
 export const models = [
@@ -26,4 +27,5 @@ export const models = [
   TeacherProfile,
   StudentProfile,
   Course,
+  CourseVideo,
 ];
