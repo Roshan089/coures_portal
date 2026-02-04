@@ -13,12 +13,15 @@ import {
 
 interface TopBarAndSideBarLayoutProps {
   sidebarItems: Array<LinkToPage>;
+  /** Optional second group (e.g. student: Courses top, My Courses bottom) */
+  sidebarSecondaryItems?: Array<LinkToPage>;
   userEmail?: string;
   children: React.ReactNode;
 }
 
 export function TopBarAndSideBarLayout({
   sidebarItems,
+  sidebarSecondaryItems,
   userEmail,
   children,
 }: TopBarAndSideBarLayoutProps) {
@@ -61,6 +64,7 @@ export function TopBarAndSideBarLayout({
       >
         <SideBar
           items={sidebarItems}
+          secondaryItems={sidebarSecondaryItems}
           variant={sidebarVariant}
           onClose={() => setSidebarVisible(false)}
         />

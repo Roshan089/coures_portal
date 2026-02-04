@@ -22,7 +22,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" style={{ colorScheme: "light" }}>
       <body className={`${roboto.variable} font-sans antialiased`}>
         <StoreProvider>
           <CurrentLayout>{children}</CurrentLayout>

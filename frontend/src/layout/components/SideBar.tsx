@@ -6,11 +6,13 @@ import { SIDE_BAR_WIDTH } from "../config";
 
 export interface SideBarProps {
   items: Array<LinkToPage>;
+  /** Optional second group (e.g. student: Courses top, My Courses bottom) */
+  secondaryItems?: Array<LinkToPage>;
   onClose?: () => void;
   variant?: "temporary" | "persistent";
 }
 
-export function SideBar({ items, onClose, variant = "persistent" }: SideBarProps) {
+export function SideBar({ items, secondaryItems, onClose, variant = "persistent" }: SideBarProps) {
   const handleAfterLinkClick = () => {
     if (variant === "temporary" && onClose) onClose();
   };
@@ -25,8 +27,14 @@ export function SideBar({ items, onClose, variant = "persistent" }: SideBarProps
           Course Portal
         </a>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto flex flex-col">
         <SideBarNavList items={items} onClick={handleAfterLinkClick} />
+        {secondaryItems && secondaryItems.length > 0 && (
+          <>
+            <div className="my-3 mx-4 border-t border-white/20" aria-hidden />
+            <SideBarNavList items={secondaryItems} onClick={handleAfterLinkClick} />
+          </>
+        )}
       </div>
       <footer className="py-4 text-center text-white/80 text-sm">
         Copyright © {new Date().getFullYear()} Course Portal
