@@ -1,6 +1,10 @@
+import { config } from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { join } from 'path';
 import { models } from '../src/database/database-entity';
+
+// Load environment variables from .env file for TypeORM CLI
+config();
 
 /**
  * Database Configuration
