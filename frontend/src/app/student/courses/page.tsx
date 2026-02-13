@@ -87,26 +87,39 @@ export default function StudentCoursesPage() {
         )}
         {!isLoading && !isError && publishedCourses.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {publishedCourses.map((course) => (
-              <div
-                key={course.id}
-                className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 hover:shadow-md hover:border-[#242D3D]/20 transition-all"
-              >
-                <h3 className="font-semibold text-gray-900">{course.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  by {course.teacher?.name ?? "Teacher"}
-                </p>
-                {course.description && (
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{course.description}</p>
-                )}
-                <Link
-                  href={`/student/courses/${course.id}`}
-                  className="mt-4 block w-full py-2.5 rounded-lg bg-[#242D3D] text-white text-sm font-medium hover:bg-[#1a222c] transition-colors text-center"
+            {publishedCourses.map((course) => {
+              const coursePrice = course.price ? parseFloat(course.price) : 0;
+              const isPaidCourse = coursePrice > 0;
+              
+              return (
+                <div
+                  key={course.id}
+                  className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 hover:shadow-md hover:border-[#242D3D]/20 transition-all"
                 >
-                  View course
-                </Link>
-              </div>
-            ))}
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-gray-900 flex-1">{course.title}</h3>
+                    {isPaidCourse && (
+                      <span className="ml-2 text-lg font-bold text-gray-900">₹{coursePrice.toFixed(2)}</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    by {course.teacher?.name ?? "Teacher"}
+                  </p>
+                  {course.description && (
+                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{course.description}</p>
+                  )}
+                  {course.emiAllowed && course.emiCount && isPaidCourse && (
+                    <p className="text-xs text-gray-500 mt-2">EMI: {course.emiCount} installments available</p>
+                  )}
+                  <Link
+                    href={`/student/courses/${course.id}`}
+                    className="mt-4 block w-full py-2.5 rounded-lg bg-[#242D3D] text-white text-sm font-medium hover:bg-[#1a222c] transition-colors text-center"
+                  >
+                    {isPaidCourse ? "View & Purchase" : "View course"}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>

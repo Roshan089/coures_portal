@@ -9,11 +9,18 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useAppSelector } from "@/store/hooks";
 
-type FormValues = { title: string; description?: string; isPublished?: boolean };
+type FormValues = {
+  title: string;
+  description?: string;
+  isPublished?: boolean;
+  price?: string;
+  emiAllowed?: boolean;
+  emiCount?: number;
+};
 
 export default function TeacherCreateCoursePage() {
   const isAuthenticated = useIsAuthenticated();
-  const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
+  const user = useAppSelector((s) => s.auth.currentUser?.user);
   const router = useRouter();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetTeacherProfileMeQuery(undefined, {
     skip: !isAuthenticated,
@@ -21,9 +28,11 @@ export default function TeacherCreateCoursePage() {
   const [createCourse, { isLoading: creating }] = useCreateCourseMutation();
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { isPublished: false },
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+    defaultValues: { isPublished: false, price: "0", emiAllowed: false },
   });
+
+  const emiAllowed = watch("emiAllowed");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -45,6 +54,9 @@ export default function TeacherCreateCoursePage() {
         description: data.description?.trim() || undefined,
         teacherId: profile.id,
         isPublished: Boolean(data.isPublished),
+        price: data.price || "0",
+        emiAllowed: Boolean(data.emiAllowed),
+        emiCount: data.emiAllowed && data.emiCount ? data.emiCount : undefined,
       }).unwrap();
       router.push("/teacher/courses");
     } catch (err: unknown) {
@@ -106,6 +118,67 @@ export default function TeacherCreateCoursePage() {
             placeholder="What will students learn?"
           />
         </div>
+
+        <div>
+          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            Price (₹)
+          </label>
+          <input
+            id="price"
+            type="number"
+            step="0.01"
+            min="0"
+            {...register("price", {
+              valueAsNumber: false,
+              validate: (value) => {
+                const num = parseFloat(value || "0");
+                return num >= 0 || "Price must be 0 or greater";
+              },
+            })}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D] focus:border-[#242D3D] outline-none"
+            placeholder="0.00"
+            defaultValue="0"
+          />
+          <p className="mt-1 text-xs text-gray-500">Set to 0 for free courses</p>
+          {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            id="emiAllowed"
+            type="checkbox"
+            {...register("emiAllowed")}
+            className="h-4 w-4 rounded border-gray-300 text-[#242D3D] focus:ring-[#242D3D]"
+          />
+          <label htmlFor="emiAllowed" className="text-sm font-medium text-gray-700">
+            Allow EMI (Easy Monthly Installments)
+          </label>
+        </div>
+
+        {emiAllowed && (
+          <div>
+            <label htmlFor="emiCount" className="block text-sm font-medium text-gray-700 mb-1">
+              Number of EMI Installments
+            </label>
+            <input
+              id="emiCount"
+              type="number"
+              min="1"
+              max="12"
+              {...register("emiCount", {
+                valueAsNumber: true,
+                required: emiAllowed ? "Number of installments is required when EMI is enabled" : false,
+                min: { value: 1, message: "Must be at least 1" },
+                max: { value: 12, message: "Maximum 12 installments" },
+              })}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D] focus:border-[#242D3D] outline-none"
+              placeholder="e.g. 3"
+            />
+            <p className="mt-1 text-xs text-gray-500">Number of monthly installments (1-12)</p>
+            {errors.emiCount && <p className="mt-1 text-sm text-red-600">{errors.emiCount.message}</p>}
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <input
             id="isPublished"

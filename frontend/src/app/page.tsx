@@ -16,9 +16,7 @@ export default function HomePage() {
   const [getStudentProfileMe] = useLazyGetStudentProfileMeQuery();
   const [getTeacherProfileMe] = useLazyGetTeacherProfileMeQuery();
   const [profileChecking, setProfileChecking] = useState(true);
-  const { role } = useAppSelector((s) => ({
-    role: s.auth.currentUser?.user?.role,
-  }));
+  const role = useAppSelector((s) => s.auth.currentUser?.user?.role);
 
   const needsProfileCheck = isAuthenticated && (role === "student" || role === "teacher");
 

@@ -1,5 +1,5 @@
 import type { LinkToPage } from "@/utils/type";
-import { BookIcon, CertificateIcon, ChartBarIcon, DashboardIcon, UserCircleIcon } from "../components/icons";
+import { BookIcon, CertificateIcon, ChartBarIcon, CreditCardIcon, DashboardIcon, UserCircleIcon } from "../components/icons";
 
 /** Top section: Dashboard + browse Courses */
 export const STUDENT_SIDEBAR_TOP: LinkToPage[] = [
@@ -10,6 +10,7 @@ export const STUDENT_SIDEBAR_TOP: LinkToPage[] = [
 /** Bottom section: My Courses + Progress, Certificates, Profile */
 export const STUDENT_SIDEBAR_BOTTOM: LinkToPage[] = [
   { title: "My Courses", path: "/student/my-courses", icon: BookIcon },
+  { title: "EMI Payments", path: "/student/emis", icon: CreditCardIcon },
   { title: "Progress", path: "/student/progress", icon: ChartBarIcon },
   { title: "Certificates", path: "/student/certificates", icon: CertificateIcon },
   { title: "Profile", path: "/student/profile", icon: UserCircleIcon },

@@ -13,7 +13,7 @@ type FormValues = { name: string; phone?: string; bio?: string; age?: string };
 export default function TeacherProfileCreatePage() {
   const isAuthenticated = useIsAuthenticated();
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
+  const user = useAppSelector((s) => s.auth.currentUser?.user);
   const router = useRouter();
   const [createProfile, { isLoading }] = useCreateTeacherProfileMutation();
   const [getProfileMe] = useLazyGetTeacherProfileMeQuery();

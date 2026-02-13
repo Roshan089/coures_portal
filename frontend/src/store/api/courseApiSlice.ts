@@ -6,8 +6,13 @@ export type Course = {
   description?: string | null;
   teacherId: string;
   isPublished: boolean;
+  price?: string;
+  emiAllowed?: boolean;
+  emiCount?: number | null;
   createdAt: string;
   updatedAt: string;
+  purchasedAt?: string;
+  accessStatus?: string;
   teacher?: {
     id: string;
     name: string;
@@ -20,6 +25,9 @@ export type CreateCourseBody = {
   description?: string;
   teacherId: string;
   isPublished?: boolean;
+  price?: string;
+  emiAllowed?: boolean;
+  emiCount?: number;
 };
 
 export type UpdateCourseBody = {
@@ -27,6 +35,9 @@ export type UpdateCourseBody = {
   description?: string;
   teacherId?: string;
   isPublished?: boolean;
+  price?: string;
+  emiAllowed?: boolean;
+  emiCount?: number;
 };
 
 export type CourseVideo = {
@@ -141,6 +152,10 @@ export const courseApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (_, __, id) => [{ type: "CourseVideo", id }, { type: "CourseVideo" }],
     }),
+    getMyCourses: builder.query<Course[], void>({
+      query: () => "/course-access/my-courses",
+      providesTags: [{ type: "Course", id: "MY_COURSES" }],
+    }),
   }),
 });
 
@@ -156,4 +171,5 @@ export const {
   useCreateCourseVideoMutation,
   useUpdateCourseVideoMutation,
   useDeleteCourseVideoMutation,
+  useGetMyCoursesQuery,
 } = courseApiSlice;

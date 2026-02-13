@@ -13,14 +13,21 @@ import { useIsAuthenticated } from "@/hooks/auth";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useAppSelector } from "@/store/hooks";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 type VideoFormValues = { title: string; description?: string; url: string };
+type CourseFormValues = {
+  title: string;
+  description?: string;
+  price?: string;
+  emiAllowed?: boolean;
+  emiCount?: number;
+};
 
 export default function TeacherCourseDetailPage() {
   const isAuthenticated = useIsAuthenticated();
-  const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
+  const user = useAppSelector((s) => s.auth.currentUser?.user);
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string | undefined;
@@ -33,8 +40,30 @@ export default function TeacherCourseDetailPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [editingCourse, setEditingCourse] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<VideoFormValues>();
+  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<VideoFormValues>();
+  const {
+    register: registerCourse,
+    handleSubmit: handleSubmitCourse,
+    reset: resetCourse,
+    formState: { errors: courseErrors },
+    watch: watchCourse,
+  } = useForm<CourseFormValues>();
+
+  const emiAllowed = watchCourse("emiAllowed");
+
+  useEffect(() => {
+    if (course) {
+      resetCourse({
+        title: course.title,
+        description: course.description || "",
+        price: course.price || "0",
+        emiAllowed: course.emiAllowed || false,
+        emiCount: course.emiCount || undefined,
+      });
+    }
+  }, [course, resetCourse]);
 
   if (!isAuthenticated || (user?.role && user.role !== "teacher")) {
     if (typeof window !== "undefined") router.replace("/auth/login");
@@ -148,6 +177,26 @@ export default function TeacherCourseDetailPage() {
     }
   };
 
+  const onUpdateCourse = async (data: CourseFormValues) => {
+    setErrorMessage("");
+    try {
+      await updateCourse({
+        id,
+        body: {
+          title: data.title.trim(),
+          description: data.description?.trim() || undefined,
+          price: data.price || "0",
+          emiAllowed: Boolean(data.emiAllowed),
+          emiCount: data.emiAllowed && data.emiCount ? data.emiCount : undefined,
+        },
+      }).unwrap();
+      setEditingCourse(false);
+    } catch (err: unknown) {
+      const e = err as { data?: { message?: string } };
+      setErrorMessage(e?.data?.message ?? "Failed to update course.");
+    }
+  };
+
   return (
     <div className="py-6 px-4 md:py-8 md:px-5 lg:py-10 lg:px-6 w-full max-w-6xl mx-auto align-middle justify-center">
       <div className="mb-6">
@@ -158,35 +207,129 @@ export default function TeacherCourseDetailPage() {
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-8">
         <div className="p-6 md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{course.title}</h1>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                    course.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {course.isPublished ? "Published" : "Draft"}
-                </span>
-                <button
-                  type="button"
-                  onClick={onTogglePublish}
-                  disabled={updatingCourse}
-                  className={`inline-flex px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
-                    course.isPublished
-                      ? "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                      : "bg-[#242D3D] text-white hover:bg-[#1a222c]"
-                  }`}
-                >
-                  {updatingCourse ? "Updating…" : course.isPublished ? "Unpublish" : "Publish"}
-                </button>
-              </div>
+            <div className="flex-1">
+              {!editingCourse ? (
+                <>
+                  <h1 className="text-2xl font-bold text-gray-900">{course.title}</h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        course.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {course.isPublished ? "Published" : "Draft"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onTogglePublish}
+                      disabled={updatingCourse}
+                      className={`inline-flex px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
+                        course.isPublished
+                          ? "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          : "bg-[#242D3D] text-white hover:bg-[#1a222c]"
+                      }`}
+                    >
+                      {updatingCourse ? "Updating…" : course.isPublished ? "Unpublish" : "Publish"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCourse(true)}
+                      className="inline-flex px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Edit Course
+                    </button>
+                  </div>
+                  {course.description && (
+                    <p className="mt-4 text-gray-600 whitespace-pre-wrap">{course.description}</p>
+                  )}
+                  <div className="mt-4 flex flex-wrap items-center gap-4">
+                    {course.price && parseFloat(course.price) > 0 ? (
+                      <div className="text-lg font-semibold text-gray-900">Price: ₹{parseFloat(course.price).toFixed(2)}</div>
+                    ) : (
+                      <div className="text-lg font-semibold text-green-600">Free Course</div>
+                    )}
+                    {course.emiAllowed && course.emiCount && (
+                      <div className="text-sm text-gray-600">EMI: {course.emiCount} installments</div>
+                    )}
+                  </div>
+                  {course.teacher && <p className="mt-4 text-sm text-gray-500">By {course.teacher.name}</p>}
+                </>
+              ) : (
+                <form onSubmit={handleSubmitCourse(onUpdateCourse)} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <input
+                      {...registerCourse("title", { required: "Title is required" })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D]"
+                    />
+                    {courseErrors.title && <p className="text-sm text-red-600">{courseErrors.title.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea
+                      {...registerCourse("description")}
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D] resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      {...registerCourse("price")}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D]"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Set to 0 for free courses</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      {...registerCourse("emiAllowed")}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <label className="text-sm font-medium text-gray-700">Allow EMI</label>
+                  </div>
+                  {emiAllowed && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">EMI Installments</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="12"
+                        {...registerCourse("emiCount", {
+                          valueAsNumber: true,
+                          min: 1,
+                          max: 12,
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#242D3D]"
+                      />
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={updatingCourse}
+                      className="px-4 py-2 bg-[#242D3D] text-white rounded-lg hover:bg-[#1a222c] disabled:opacity-60"
+                    >
+                      {updatingCourse ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCourse(false);
+                        resetCourse();
+                      }}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
-          {course.description && (
-            <p className="mt-4 text-gray-600 whitespace-pre-wrap">{course.description}</p>
-          )}
-          {course.teacher && <p className="mt-4 text-sm text-gray-500">By {course.teacher.name}</p>}
         </div>
       </div>
 

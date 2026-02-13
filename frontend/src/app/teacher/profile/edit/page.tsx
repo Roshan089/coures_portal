@@ -16,7 +16,7 @@ type FormValues = { name: string; phone?: string; bio?: string; age?: string };
 
 export default function TeacherProfileEditPage() {
   const isAuthenticated = useIsAuthenticated();
-  const { user } = useAppSelector((s) => ({ user: s.auth.currentUser?.user }));
+  const user = useAppSelector((s) => s.auth.currentUser?.user);
   const router = useRouter();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetTeacherProfileMeQuery(undefined, { skip: !isAuthenticated });
   const [updateProfile, { isLoading: updating }] = useUpdateTeacherProfileMutation();
