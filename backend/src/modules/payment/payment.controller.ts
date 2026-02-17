@@ -57,6 +57,8 @@ export class PaymentController {
     return this.paymentService.createOrder(studentProfile.id, dto);
   }
 
+
+
   @Post('verify')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verify payment after Razorpay checkout success' })
@@ -71,6 +73,8 @@ export class PaymentController {
   async verifyPayment(@Body() dto: VerifyPaymentDto) {
     return this.paymentService.verifyPayment(dto);
   }
+
+
 
   @Post('emis')
   @HttpCode(HttpStatus.OK)

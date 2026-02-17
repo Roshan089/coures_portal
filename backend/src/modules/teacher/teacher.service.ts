@@ -8,14 +8,18 @@ import { Repository } from 'typeorm';
 import { TeacherProfile } from './entities/teacher-profile.entity';
 import { CreateTeacherProfileDto } from './dto/create-teacher-profile.dto';
 import { UpdateTeacherProfileDto } from './dto/update-teacher-profile.dto';
+import { UpdateStudentAccessStatusDto } from './dto/update-student-access-status.dto';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../../shared/enum/user-roles';
+import { CourseAccess } from '../course-access/entities/course-access.entity';
 
 @Injectable()
 export class TeacherService {
   constructor(
     @InjectRepository(TeacherProfile)
     private readonly teacherProfileRepository: Repository<TeacherProfile>,
+    @InjectRepository(CourseAccess)
+    private readonly courseAccessRepository: Repository<CourseAccess>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -145,5 +149,93 @@ export class TeacherService {
       throw new HttpException('Teacher profile not found', HttpStatus.NOT_FOUND);
     }
     await this.teacherProfileRepository.remove(profile);
+  }
+
+  /**
+   * Get students enrolled in the teacher's courses, with optional filters.
+   * Returns course-wise enrollments with payment/order/EMI details.
+   */
+  async getTeacherStudents(
+    teacherId: string,
+    filters?: { courseId?: string; status?: string },
+  ) {
+    const where: { course: { teacherId: string; id?: string }; status?: string } = {
+      course: { teacherId },
+    };
+    if (filters?.courseId) where.course.id = filters.courseId;
+    if (filters?.status) where.status = filters.status;
+
+    const accessRecords = await this.courseAccessRepository.find({
+      where,
+      relations: [
+        'student',
+        'student.user',
+        'course',
+        'order',
+        'order.emis',
+      ],
+      order: { createdAt: 'DESC' },
+    });
+
+    return accessRecords.map((access) => {
+      const student = access.student;
+      const user = student?.user;
+      const sanitizedStudent = user && 'passwordHash' in user
+        ? { ...student, user: { id: user.id, email: user.email, role: user.role } }
+        : student;
+      const order = access.order;
+      return {
+        courseAccessId: access.id,
+        student: sanitizedStudent
+          ? { id: sanitizedStudent.id, name: sanitizedStudent.name, user: sanitizedStudent.user }
+          : null,
+        course: access.course
+          ? { id: access.course.id, title: access.course.title }
+          : null,
+        accessStatus: access.status,
+        enrolledAt: access.createdAt,
+        order: order
+          ? {
+              id: order.id,
+              amount: order.amount,
+              status: order.status,
+              createdAt: order.createdAt,
+              emis:
+                order.emis?.map((e) => ({
+                  id: e.id,
+                  installmentNumber: e.installmentNumber,
+                  dueDate: e.dueDate,
+                  amount: e.amount,
+                  status: e.status,
+                  paidAt: e.paidAt,
+                })) ?? [],
+            }
+          : null,
+      };
+    });
+  }
+
+  /**
+   * Teacher manually updates a student's course access status (e.g. suspend for rule violation).
+   * Only allowed for enrollments in the teacher's own courses.
+   */
+  async updateStudentAccessStatus(
+    teacherId: string,
+    courseAccessId: string,
+    dto: UpdateStudentAccessStatusDto,
+  ) {
+    const access = await this.courseAccessRepository.findOne({
+      where: { id: courseAccessId },
+      relations: ['course'],
+    });
+    if (!access) {
+      throw new HttpException('Course access record not found', HttpStatus.NOT_FOUND);
+    }
+    if (access.course.teacherId !== teacherId) {
+      throw new HttpException('You can only update access for your own course enrollments', HttpStatus.FORBIDDEN);
+    }
+    access.status = dto.status;
+    await this.courseAccessRepository.save(access);
+    return { courseAccessId: access.id, status: access.status };
   }
 }

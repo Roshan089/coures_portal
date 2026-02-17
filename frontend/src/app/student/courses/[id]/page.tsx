@@ -23,6 +23,7 @@ export default function StudentCourseDetailPage() {
   const params = useParams();
   const id = params?.id as string | undefined;
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [accessDenialMessage, setAccessDenialMessage] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'full' | 'emi'>('full');
@@ -47,14 +48,17 @@ export default function StudentCourseDetailPage() {
     if (course) {
       if (!isPaidCourse) {
         setHasAccess(true);
+        setAccessDenialMessage(null);
       } else {
         if (videosError) {
-          const err = videosError as any;
+          const err = videosError as { status?: number; data?: { statusCode?: number; message?: string } };
           if (err?.status === 403 || err?.data?.statusCode === 403) {
             setHasAccess(false);
+            setAccessDenialMessage(err?.data?.message ?? null);
           }
         } else if (!videosLoading && videos.length >= 0) {
           setHasAccess(true);
+          setAccessDenialMessage(null);
         }
       }
     }
@@ -76,8 +80,15 @@ export default function StudentCourseDetailPage() {
           );
           if (response.status === 403) {
             setHasAccess(false);
+            try {
+              const body = await response.json();
+              setAccessDenialMessage(body?.message ?? null);
+            } catch {
+              setAccessDenialMessage(null);
+            }
           } else if (response.ok) {
             setHasAccess(true);
+            setAccessDenialMessage(null);
           }
         } catch {
           setHasAccess(false);
@@ -282,6 +293,16 @@ export default function StudentCourseDetailPage() {
                 </span>
               ) : hasAccess === false ? (
                 <>
+                  {accessDenialMessage && (accessDenialMessage.includes("suspended") || accessDenialMessage.includes("revoked")) ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
+                      <p className="text-sm font-medium">Access restricted</p>
+                      <p className="mt-1 text-sm">{accessDenialMessage}</p>
+                      <p className="mt-2 text-xs text-amber-700">
+                        If you have overdue EMI payments, pay them from <Link href="/student/emis" className="underline font-medium">EMI Payments</Link> to restore access.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
                   <p className="text-sm text-gray-600 mb-4">
                     Purchase this course to access all videos and content.
                   </p>
@@ -337,6 +358,8 @@ export default function StudentCourseDetailPage() {
                         : `Buy Now - ₹${coursePrice.toFixed(2)}`
                     }
                   </button>
+                    </>
+                  )}
                 </>
               ) : (
                 <p className="text-sm text-gray-600">Checking access...</p>

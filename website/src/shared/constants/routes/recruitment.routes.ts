@@ -1,6 +1,0 @@
-export const RECRUITMENT_ROUTES_PREFIX = "/agency";
-export const RECRUITMENT_ROUTES = {
-  CREATE: `${RECRUITMENT_ROUTES_PREFIX}/create`,
-  DASHBOARD: `${RECRUITMENT_ROUTES_PREFIX}/dashboard`,
-};
-

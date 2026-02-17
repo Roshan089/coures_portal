@@ -83,10 +83,23 @@ export default function StudentMyCoursesPage() {
                   {course.description && (
                     <p className="text-sm text-gray-600 mt-2 line-clamp-2">{course.description}</p>
                   )}
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
-                      Purchased {new Date(course.purchasedAt || course.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-gray-500">
+                        Purchased {new Date(course.purchasedAt || course.createdAt).toLocaleDateString()}
+                      </span>
+                      {course.accessStatus && course.accessStatus !== "active" && (
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                            course.accessStatus === "suspended"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {course.accessStatus}
+                        </span>
+                      )}
+                    </div>
                     <Link
                       href={`/student/courses/${course.id}`}
                       className="text-sm font-medium text-[#242D3D] hover:underline"

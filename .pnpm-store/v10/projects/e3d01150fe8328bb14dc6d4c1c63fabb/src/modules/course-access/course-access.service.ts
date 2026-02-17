@@ -13,12 +13,10 @@ export class CourseAccessService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
+  /** Returns all course access records for the student (active, suspended, revoked) so they appear in My Courses. */
   async getStudentCourses(studentId: string) {
     const accessRecords = await this.courseAccessRepository.find({
-      where: {
-        studentId,
-        status: 'active',
-      },
+      where: { studentId },
       relations: ['course', 'course.teacher', 'course.teacher.user'],
       order: { createdAt: 'DESC' },
     });

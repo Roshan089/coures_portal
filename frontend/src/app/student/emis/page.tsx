@@ -133,9 +133,11 @@ export default function StudentEmisPage() {
       ? pending.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
       : null;
     const courseTitle = orderEmis[0]?.order?.course?.title ?? "Course";
+    const courseId = orderEmis[0]?.order?.course?.id;
     const totalCount = orderEmis.length;
     return {
       orderId,
+      courseId,
       courseTitle,
       paidCount: paid.length,
       totalCount,
@@ -185,25 +187,31 @@ export default function StudentEmisPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">By Course</h2>
             <div className="space-y-4">
               {summaryByOrder.map((summary) => (
-                <div
+                <Link
                   key={summary.orderId}
-                  className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                  href={summary.courseId ? `/student/emis/${summary.courseId}` : "#"}
+                  className="block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-[#242D3D]/30 hover:shadow-md transition-all"
                 >
-                  <h3 className="font-semibold text-gray-900">{summary.courseTitle}</h3>
-                  <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                    <span className="text-gray-600">
-                      <strong className="text-gray-900">{summary.paidCount}</strong> of {summary.totalCount} paid
-                    </span>
-                    <span className="text-gray-600">
-                      <strong className="text-gray-900">{summary.remainingCount}</strong> remaining
-                    </span>
-                    {summary.nextDue && (
-                      <span className="text-amber-700">
-                        Next due: <strong>{formatDate(summary.nextDue.dueDate)}</strong> — ₹{parseFloat(summary.nextDue.amount).toFixed(2)}
-                      </span>
-                    )}
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{summary.courseTitle}</h3>
+                      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                        <span className="text-gray-600">
+                          <strong className="text-gray-900">{summary.paidCount}</strong> of {summary.totalCount} paid
+                        </span>
+                        <span className="text-gray-600">
+                          <strong className="text-gray-900">{summary.remainingCount}</strong> remaining
+                        </span>
+                        {summary.nextDue && (
+                          <span className="text-amber-700">
+                            Next due: <strong>{formatDate(summary.nextDue.dueDate)}</strong> — ₹{parseFloat(summary.nextDue.amount).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-[#242D3D] shrink-0">View all installments →</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>

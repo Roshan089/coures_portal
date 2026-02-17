@@ -122,12 +122,13 @@ export class PaymentService {
     await this.orderRepository.save(savedOrder);
 
     // Only create EMI records if student explicitly chose EMI and course allows it
+    // Due dates: same calendar day each month (e.g. paid 17 Feb → next due 17 Mar, 17 Apr, ...)
     if (dto.useEmi === true && course.emiAllowed && course.emiCount && course.emiCount > 0) {
       const emiAmount = (amountRupees / course.emiCount).toFixed(2);
       const dueDates: Date[] = [];
       const now = new Date();
       for (let i = 0; i < course.emiCount; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+        const d = new Date(now.getFullYear(), now.getMonth() + i, now.getDate());
         dueDates.push(d);
       }
       for (let i = 0; i < course.emiCount; i++) {
